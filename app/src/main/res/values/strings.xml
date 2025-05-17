@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Desky</string>
+    <string name="accessibility_service_description">Taskbar service that adds a persistent dock overlay for quick access to apps.</string>
 </resources>
