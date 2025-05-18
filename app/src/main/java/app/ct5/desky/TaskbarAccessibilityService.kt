@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -15,11 +16,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityWindowInfo
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.tabs.TabLayout
+import kotlin.collections.mutableListOf
 
 class TaskbarAccessibilityService : AccessibilityService() {
 
@@ -93,7 +96,24 @@ class TaskbarAccessibilityService : AccessibilityService() {
         windowManager.removeView(taskbarView)
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        val currentWindows = mutableListOf<AccessibilityWindowInfo>()
+        for (window in windows) {
+            if (window.root?.packageName == "app.ct5.desky") {
+
+            } else if (window.root?.packageName == "com.android.systemui") {
+
+            } else if (window.root?.packageName == "null") {
+
+            } else {
+                val bounds = Rect()
+                window.getBoundsInScreen(bounds)
+                Log.d("WindowInfo", "Package: ${window.root?.packageName}")
+                currentWindows.add(window)
+            }
+        }
+        updateTaskbarApps(currentWindows)
+    }
     override fun onInterrupt() {}
 
     fun initTaskbar() {
@@ -135,5 +155,83 @@ class TaskbarAccessibilityService : AccessibilityService() {
 
             tabLayout.addTab(tab)
         }
+    }
+
+    fun updateTaskbarApps(windows : List<AccessibilityWindowInfo>) {
+        val savedSet = sharedPref.getStringSet("TaskbarApps", emptySet()) ?: emptySet()
+        if (savedSet.isEmpty()) {
+            initTaskbar()
+        }
+
+        tabLayout.clearOnTabSelectedListeners()
+        //tabLayout.removeAllTabs()
+
+        var taskbarPackages = mutableListOf<String>()
+        var newTaskbarPackages = mutableListOf<String>()
+        for (i in 0 until tabLayout.tabCount) {
+            taskbarPackages.add(tabLayout.getTabAt(i)?.tag.toString())
+        }
+
+        for (app in savedSet) {
+            newTaskbarPackages.add(app)
+        }
+
+        for (window in windows) {
+            if (!savedSet.contains(window.root?.packageName.toString())) {
+                newTaskbarPackages.add(window.root?.packageName.toString())
+            }
+        }
+
+        val removedPackages = taskbarPackages.subtract(newTaskbarPackages.toSet())
+        for (i in tabLayout.tabCount - 1 downTo 0) {
+            val tab = tabLayout.getTabAt(i)
+            val tabPackage = tab?.tag as? String
+            if (tabPackage != null && removedPackages.contains(tabPackage)) {
+                tabLayout.removeTabAt(i)
+            }
+        }
+
+        val addedPackages = newTaskbarPackages.filter { it !in taskbarPackages }
+        for (pkg in addedPackages) {
+            val app = installedApps.find { it.packageName == pkg }
+            if (app != null) {
+                val tab = tabLayout.newTab()
+
+                app.icon?.let { icon ->
+                    val wrappedIcon = DrawableCompat.wrap(icon).mutate()
+                    DrawableCompat.setTint(wrappedIcon, android.R.attr.colorPrimary)
+                    tab.setIcon(wrappedIcon)
+                }
+
+                tab.contentDescription = app.name
+                tab.tag = app.packageName
+
+                tabLayout.addTab(tab)
+            }
+        }
+        
+        val currentWindow = windows?.firstOrNull { it.isFocused }
+        val currentPackage = currentWindow?.root?.packageName?.toString()
+
+        if (currentPackage != null) {
+            for (i in 0 until tabLayout.tabCount) {
+                val tab = tabLayout.getTabAt(i)
+                if (tab?.tag == currentPackage) {
+                    // 3. Select this tab
+                    tab.select()
+                    break
+                }
+            }
+        }
+
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                val app = installedApps.find { it.packageName == tab.tag }
+                app?.launch(this@TaskbarAccessibilityService)
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab) {}
+            override fun onTabReselected(tab: TabLayout.Tab) {}
+        })
     }
 }
