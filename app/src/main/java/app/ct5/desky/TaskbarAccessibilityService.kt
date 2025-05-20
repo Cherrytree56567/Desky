@@ -1,6 +1,7 @@
 package app.ct5.desky
 
 import android.accessibilityservice.AccessibilityService
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -18,6 +20,7 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityWindowInfo
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -113,6 +116,17 @@ class TaskbarAccessibilityService : AccessibilityService() {
             }
         }
         updateTaskbarApps(currentWindows)
+        val currentWindow = windows?.firstOrNull { it.isFocused }
+        val currentPackage = currentWindow?.root?.packageName?.toString()
+
+        if (currentPackage != null) {
+            Log.d("PackageName", currentPackage)
+            if (currentPackage == "app.ct5.desky") {
+                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.empty)
+            } else {
+                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.tab_indicator)
+            }
+        }
     }
     override fun onInterrupt() {}
 
@@ -147,16 +161,17 @@ class TaskbarAccessibilityService : AccessibilityService() {
 
             packageApp?.icon?.let { icon ->
                 val wrappedIcon = DrawableCompat.wrap(icon).mutate()
-                DrawableCompat.setTint(wrappedIcon, android.R.attr.colorPrimary)  // Replace Color.RED with your desired color
+                DrawableCompat.setTint(wrappedIcon, android.R.attr.colorPrimary)
                 tab.setIcon(wrappedIcon)
             }
-            tab.contentDescription = packageApp?.name // shows tooltip on hover or long press
+            tab.contentDescription = packageApp?.name
             tab.tag = packageApp?.packageName
 
             tabLayout.addTab(tab)
         }
     }
 
+    @SuppressLint("ResourceAsColor")
     fun updateTaskbarApps(windows : List<AccessibilityWindowInfo>) {
         val savedSet = sharedPref.getStringSet("TaskbarApps", emptySet()) ?: emptySet()
         if (savedSet.isEmpty()) {
@@ -164,7 +179,6 @@ class TaskbarAccessibilityService : AccessibilityService() {
         }
 
         tabLayout.clearOnTabSelectedListeners()
-        //tabLayout.removeAllTabs()
 
         var taskbarPackages = mutableListOf<String>()
         var newTaskbarPackages = mutableListOf<String>()
@@ -209,7 +223,7 @@ class TaskbarAccessibilityService : AccessibilityService() {
                 tabLayout.addTab(tab)
             }
         }
-        
+
         val currentWindow = windows?.firstOrNull { it.isFocused }
         val currentPackage = currentWindow?.root?.packageName?.toString()
 

@@ -1,43 +1,57 @@
 package app.ct5.desky
 
-import android.R.attr.tooltipText
+import android.Manifest
+import android.accessibilityservice.AccessibilityService
+import android.app.WallpaperManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Telephony
-import android.telecom.TelecomManager
-import android.util.Log
-import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.google.android.material.tabs.TabLayout
-import kotlin.toString
-import app.ct5.desky.R
-import androidx.core.content.edit
-import android.graphics.Canvas
 import android.provider.Settings
-import androidx.core.graphics.drawable.DrawableCompat
+import android.text.TextUtils
+import android.view.WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER
+import androidx.annotation.RequiresPermission
+import androidx.constraintlayout.widget.ConstraintLayout
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+        var mainContraint = findViewById<ConstraintLayout>(R.id.main)
 
         // TODO: Ask for Accessibility Settings
-        startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        val hasPermission = isAccessibilityServiceEnabled(this, TaskbarAccessibilityService::class.java)
+        if (!hasPermission) {
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        }
+
+        window.addFlags(
+            FLAG_SHOW_WALLPAPER
+        )
+    }
+
+    fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<out AccessibilityService>): Boolean {
+        val expectedComponentName = ComponentName(context, serviceClass)
+        val enabledServices = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: return false
+
+        val colonSplitter = TextUtils.SimpleStringSplitter(':')
+        colonSplitter.setString(enabledServices)
+
+        for (service in colonSplitter) {
+            if (service.equals(expectedComponentName.flattenToString(), ignoreCase = true)) {
+                return true
+            }
+        }
+
+        return false
     }
 }

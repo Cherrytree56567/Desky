@@ -3,7 +3,10 @@
     <style name="Base.Theme.Desky" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
     </style>
-
     <style name="Theme.Desky" parent="Base.Theme.Desky" />
 </resources>
