@@ -2,8 +2,11 @@ package app.ct5.desky
 
 import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
+import android.app.KeyguardManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.graphics.Rect
@@ -34,6 +37,24 @@ class TaskbarAccessibilityService : AccessibilityService() {
     private lateinit var tabLayout: TabLayout
     private lateinit var sharedPref: android.content.SharedPreferences
     private lateinit var installedApps: List<App>
+    private lateinit var params: WindowManager.LayoutParams
+    private var isTaskbarVisible = false
+
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+            val isLocked = keyguardManager.isKeyguardLocked || keyguardManager.isDeviceLocked
+
+            when (intent.action) {
+                Intent.ACTION_SCREEN_OFF -> removeTaskbar()
+                Intent.ACTION_USER_PRESENT -> {
+                    if (!isLocked) {
+                        showTaskbar()
+                    }
+                }
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onServiceConnected() {
@@ -46,7 +67,7 @@ class TaskbarAccessibilityService : AccessibilityService() {
         val inflater = LayoutInflater.from(themedContext)
         taskbarView = inflater.inflate(R.layout.taskbar, null)
 
-        val params = WindowManager.LayoutParams(
+        params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
@@ -56,7 +77,10 @@ class TaskbarAccessibilityService : AccessibilityService() {
         )
         params.gravity = Gravity.BOTTOM
 
-        windowManager.addView(taskbarView, params)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            params.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
 
         tabLayout = taskbarView.findViewById(R.id.TaskBar)
         sharedPref = getSharedPreferences("app.ct5.deskyPrefs", Context.MODE_PRIVATE)
@@ -92,6 +116,14 @@ class TaskbarAccessibilityService : AccessibilityService() {
             override fun onTabUnselected(tab: TabLayout.Tab) {}
             override fun onTabReselected(tab: TabLayout.Tab) {}
         })
+
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_USER_PRESENT)
+        }
+        registerReceiver(screenReceiver, filter)
+
+        showTaskbar()
     }
 
     override fun onDestroy() {
@@ -121,14 +153,34 @@ class TaskbarAccessibilityService : AccessibilityService() {
 
         if (currentPackage != null) {
             Log.d("PackageName", currentPackage)
-            if (currentPackage == "app.ct5.desky") {
-                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.empty)
-            } else {
-                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.tab_indicator)
-            }
+            selectTabForPackage(currentPackage)
         }
     }
     override fun onInterrupt() {}
+
+    private fun selectTabForPackage(packageName: String) {
+        for (i in 0 until tabLayout.tabCount) {
+            val tab = tabLayout.getTabAt(i)
+            if (tab?.tag == packageName) {
+                tab.select()
+                return
+            }
+        }
+    }
+
+    private fun showTaskbar() {
+        if (!isTaskbarVisible && !taskbarView.isAttachedToWindow) {
+            windowManager.addView(taskbarView, params)
+            isTaskbarVisible = true
+        }
+    }
+
+    private fun removeTaskbar() {
+        if (isTaskbarVisible && taskbarView.isAttachedToWindow) {
+            windowManager.removeView(taskbarView)
+            isTaskbarVisible = false
+        }
+    }
 
     fun initTaskbar() {
         val pm = packageManager
