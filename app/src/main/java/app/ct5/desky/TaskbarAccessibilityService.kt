@@ -124,6 +124,8 @@ class TaskbarAccessibilityService : AccessibilityService() {
         registerReceiver(screenReceiver, filter)
 
         showTaskbar()
+
+        tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.empty)
     }
 
     override fun onDestroy() {
@@ -135,9 +137,9 @@ class TaskbarAccessibilityService : AccessibilityService() {
         val currentWindows = mutableListOf<AccessibilityWindowInfo>()
         for (window in windows) {
             val bounds = Rect()
-                window.getBoundsInScreen(bounds)
-                Log.d("WindowInfo", "Package: ${window.root?.packageName}")
-                currentWindows.add(window)
+            window.getBoundsInScreen(bounds)
+            Log.d("WindowInfo", "Package: ${window.root?.packageName}")
+            currentWindows.add(window)
         }
         updateTaskbarApps(currentWindows)
     }
@@ -179,6 +181,16 @@ class TaskbarAccessibilityService : AccessibilityService() {
         val savedSet = sharedPref.getStringSet("TaskbarApps", emptySet()) ?: emptySet()
         if (savedSet.isEmpty()) {
             initTaskbar()
+        }
+
+        {
+            val tab = tabLayout.newTab()
+
+            tab.setIcon(R.drawable.start_icon)
+            tab.contentDescription = "Start Menu"
+            tab.tag = "StartMenuIcon"
+
+            tabLayout.addTab(tab)
         }
 
         for (app in savedSet) {
