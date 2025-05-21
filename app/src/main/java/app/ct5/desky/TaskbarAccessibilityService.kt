@@ -10,6 +10,8 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -22,7 +24,9 @@ import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityWindowInfo
+import android.widget.ImageView
 import androidx.annotation.RequiresApi
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.ViewCompat
@@ -34,11 +38,14 @@ class TaskbarAccessibilityService : AccessibilityService() {
 
     private lateinit var windowManager: WindowManager
     private lateinit var taskbarView: View
+    private lateinit var startView: View
     private lateinit var tabLayout: TabLayout
+    private lateinit var startButton: ImageView
     private lateinit var sharedPref: android.content.SharedPreferences
     private lateinit var installedApps: List<App>
     private lateinit var params: WindowManager.LayoutParams
     private var isTaskbarVisible = false
+    private var isStartMenuVisible = false
 
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -66,6 +73,9 @@ class TaskbarAccessibilityService : AccessibilityService() {
 
         val inflater = LayoutInflater.from(themedContext)
         taskbarView = inflater.inflate(R.layout.taskbar, null)
+        startView = inflater.inflate(R.layout.start_layout, null)
+
+        startButton = taskbarView.findViewById(R.id.startButton)
 
         params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -116,6 +126,17 @@ class TaskbarAccessibilityService : AccessibilityService() {
             override fun onTabUnselected(tab: TabLayout.Tab) {}
             override fun onTabReselected(tab: TabLayout.Tab) {}
         })
+
+        startButton.setOnClickListener {
+            if (isStartMenuVisible) {
+                windowManager.removeView(startView)
+                isStartMenuVisible = false
+            } else {
+                windowManager.addView(startView, params)
+                isTaskbarVisible = true
+                Log.d("H", "Showing")
+            }
+        }
 
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_OFF)
@@ -181,16 +202,6 @@ class TaskbarAccessibilityService : AccessibilityService() {
         val savedSet = sharedPref.getStringSet("TaskbarApps", emptySet()) ?: emptySet()
         if (savedSet.isEmpty()) {
             initTaskbar()
-        }
-
-        {
-            val tab = tabLayout.newTab()
-
-            tab.setIcon(R.drawable.start_icon)
-            tab.contentDescription = "Start Menu"
-            tab.tag = "StartMenuIcon"
-
-            tabLayout.addTab(tab)
         }
 
         for (app in savedSet) {

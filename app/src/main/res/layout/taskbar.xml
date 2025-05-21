@@ -24,4 +24,17 @@
         app:tabSelectedTextColor="@color/white"
         app:tabTextColor="@color/white"
         app:tabUnboundedRipple="false" />
+
+    <ImageView
+        android:id="@+id/startButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/android_icon"
+        android:contentDescription="@string/start_button"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/TaskBar"
+        tools:visibility="visible" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
