@@ -134,31 +134,12 @@ class TaskbarAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val currentWindows = mutableListOf<AccessibilityWindowInfo>()
         for (window in windows) {
-            if (window.root?.packageName == "app.ct5.desky") {
-
-            } else if (window.root?.packageName == "com.android.systemui") {
-
-            } else if (window.root?.packageName == "null") {
-
-            } else {
-                val bounds = Rect()
+            val bounds = Rect()
                 window.getBoundsInScreen(bounds)
                 Log.d("WindowInfo", "Package: ${window.root?.packageName}")
                 currentWindows.add(window)
-            }
         }
         updateTaskbarApps(currentWindows)
-        val currentWindow = windows?.firstOrNull { it.isFocused }
-        val currentPackage = currentWindow?.root?.packageName?.toString()
-
-        if (currentPackage != null) {
-            Log.d("PackageName", currentPackage)
-            if (currentPackage == "app.ct5.desky") {
-                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.empty)
-            } else {
-                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.tab_indicator)
-            }
-        }
     }
     override fun onInterrupt() {}
 
@@ -255,18 +236,24 @@ class TaskbarAccessibilityService : AccessibilityService() {
         for (pkg in addedPackages) {
             val app = installedApps.find { it.packageName == pkg }
             if (app != null) {
-                val tab = tabLayout.newTab()
+                if (pkg == "app.ct5.desky") {
 
-                app.icon?.let { icon ->
-                    val wrappedIcon = DrawableCompat.wrap(icon).mutate()
-                    DrawableCompat.setTint(wrappedIcon, android.R.attr.colorPrimary)
-                    tab.setIcon(wrappedIcon)
+                } else if (pkg == "com.android.systemui") {
+
+                } else {
+                    val tab = tabLayout.newTab()
+
+                    app.icon?.let { icon ->
+                        val wrappedIcon = DrawableCompat.wrap(icon).mutate()
+                        DrawableCompat.setTint(wrappedIcon, android.R.attr.colorPrimary)
+                        tab.setIcon(wrappedIcon)
+                    }
+
+                    tab.contentDescription = app.name
+                    tab.tag = app.packageName
+
+                    tabLayout.addTab(tab)
                 }
-
-                tab.contentDescription = app.name
-                tab.tag = app.packageName
-
-                tabLayout.addTab(tab)
             }
         }
 
@@ -274,12 +261,19 @@ class TaskbarAccessibilityService : AccessibilityService() {
         val currentPackage = currentWindow?.root?.packageName?.toString()
 
         if (currentPackage != null) {
-            for (i in 0 until tabLayout.tabCount) {
-                val tab = tabLayout.getTabAt(i)
-                if (tab?.tag == currentPackage) {
-                    // 3. Select this tab
-                    tab.select()
-                    break
+            if (currentPackage == "app.ct5.desky") {
+                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.empty)
+            } else if (currentPackage == "com.android.systemui") {
+                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.empty)
+            } else {
+                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.tab_indicator)
+                for (i in 0 until tabLayout.tabCount) {
+                    val tab = tabLayout.getTabAt(i)
+                    if (tab?.tag == currentPackage) {
+                        // 3. Select this tab
+                        tab.select()
+                        break
+                    }
                 }
             }
         }
