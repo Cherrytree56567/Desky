@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;">
+    <g id="Layer1">
+        <g transform="matrix(1.17085,0,0,1.14388,-87.4768,-73.6647)">
+            <rect x="0" y="0" width="1024" height="1024" style="fill:rgb(3,0,76);fill-opacity:0.98;"/>
+        </g>
+        <g transform="matrix(27.9897,0,0,27.5575,176.123,161.735)">
+            <path d="M22,12.204L22,13.725C22,17.626 22,19.576 20.828,20.788C19.657,22 17.771,22 14,22L10,22C6.229,22 4.343,22 3.172,20.788C2,19.576 2,17.626 2,13.725L2,12.204C2,9.915 2,8.771 2.519,7.823C3.038,6.874 3.987,6.286 5.884,5.108L7.884,3.867C9.889,2.622 10.892,2 12,2C13.108,2 14.111,2.622 16.116,3.867L18.116,5.108C20.013,6.286 20.962,6.874 21.481,7.823" style="fill:none;fill-rule:nonzero;stroke:url(#_Linear1);stroke-width:2px;"/>
+        </g>
+        <g transform="matrix(27.9897,0,0,27.5575,176.123,144.957)">
+            <path d="M15,18L9,18" style="fill:none;fill-rule:nonzero;stroke:url(#_Linear2);stroke-width:2px;"/>
+        </g>
+    </g>
+    <defs>
+        <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(20,0,0,20,2,12)"><stop offset="0" style="stop-color:rgb(135,0,255);stop-opacity:1"/><stop offset="0.42" style="stop-color:rgb(98,50,255);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(17,157,255);stop-opacity:1"/></linearGradient>
+        <linearGradient id="_Linear2" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(6,0,0,2e-06,9,18)"><stop offset="0" style="stop-color:rgb(135,0,255);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(17,157,255);stop-opacity:1"/></linearGradient>
+    </defs>
+</svg>
