@@ -153,20 +153,14 @@ class TaskbarAccessibilityService : AccessibilityService() {
 
         if (currentPackage != null) {
             Log.d("PackageName", currentPackage)
-            selectTabForPackage(currentPackage)
-        }
-    }
-    override fun onInterrupt() {}
-
-    private fun selectTabForPackage(packageName: String) {
-        for (i in 0 until tabLayout.tabCount) {
-            val tab = tabLayout.getTabAt(i)
-            if (tab?.tag == packageName) {
-                tab.select()
-                return
+            if (currentPackage == "app.ct5.desky") {
+                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.empty)
+            } else {
+                tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.tab_indicator)
             }
         }
     }
+    override fun onInterrupt() {}
 
     private fun showTaskbar() {
         if (!isTaskbarVisible && !taskbarView.isAttachedToWindow) {
