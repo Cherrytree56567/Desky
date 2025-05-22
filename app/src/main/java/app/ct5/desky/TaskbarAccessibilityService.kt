@@ -14,6 +14,8 @@ import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.util.TypedValue
@@ -293,8 +295,10 @@ class TaskbarAccessibilityService : AccessibilityService() {
         if (currentPackage != null) {
             if (currentPackage == "app.ct5.desky") {
                 tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.empty)
+                tabLayout.selectTab(null)
             } else if (currentPackage == "com.android.systemui") {
                 tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.empty)
+                tabLayout.selectTab(null)
             } else {
                 tabLayout.setSelectedTabIndicator(app.ct5.desky.R.drawable.tab_indicator)
                 for (i in 0 until tabLayout.tabCount) {
@@ -306,6 +310,8 @@ class TaskbarAccessibilityService : AccessibilityService() {
                     }
                 }
             }
+        } else {
+            tabLayout.selectTab(null)
         }
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
