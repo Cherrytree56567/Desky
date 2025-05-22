@@ -33,6 +33,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.tabs.TabLayout
 import kotlin.collections.mutableListOf
+import kotlin.jvm.java
 
 class TaskbarAccessibilityService : AccessibilityService() {
 
@@ -129,12 +130,18 @@ class TaskbarAccessibilityService : AccessibilityService() {
 
         startButton.setOnClickListener {
             if (isStartMenuVisible) {
-                windowManager.removeView(startView)
+                val intent = Intent(this, StartMenuActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    putExtra("close", true)
+                }
+                startActivity(intent)
                 isStartMenuVisible = false
             } else {
-                windowManager.addView(startView, params)
-                isTaskbarVisible = true
-                Log.d("H", "Showing")
+                val intent = Intent(this, StartMenuActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(intent)
+                isStartMenuVisible = true
             }
         }
 
